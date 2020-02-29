@@ -1,0 +1,12 @@
+{
+  "timeZone": "Europe/Paris",
+  "dependencies": {
+    "libraries": [{
+      "userSymbol": "poloseeding",
+      "libraryId": "1zWELy1ApGFhukHWVldSl6hfyjz1pYLmXV4lxPmz2INwmcKgaq1EaLZKl",
+      "version": "1"
+    }]
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8"
+}

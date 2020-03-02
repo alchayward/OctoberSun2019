@@ -1,4 +1,4 @@
-var classTypes = { 'swiss': SwissBracket};
+var classTypes = { 'swiss': SwissBracket, 'single elim':SingleEliminationBracket, 'double elim':DoubleEliminationBracket};
 
 function onEdit(e) {
   var sheet = SpreadsheetApp.getActiveSheet();
@@ -29,6 +29,9 @@ function writeAllGames(){
 }
 
 function getBracketFromSheet(sheet) {
+  console.log(sheet.getNamedRanges().map(x=>x.getName()));
+  console.log(sheet.getNamedRanges().map(x=>x.getName()).indexOf('bracketType'));
+  console.log(sheet.getName());
   if  (sheet.getNamedRanges().map(x=>x.getName()).indexOf('bracketType') < 0) {
     return null;
   } else {   

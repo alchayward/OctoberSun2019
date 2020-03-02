@@ -13,7 +13,8 @@ function cloneGoogleSheet(templateName, newName,) {
   sheet.setName(newName);
 
   /* Make the new sheet active */
-  return sheet
+  SpreadsheetApp.setActiveSheet(sheet);
+  return sheet;
 }
 
 function makeSwiss(){
@@ -36,9 +37,44 @@ function makeSwiss(){
   
 }
 
-function makeSingleElim(){}
+function makeSingleElim(){
+  var s = SpreadsheetApp.getActiveSheet();
+  var newSheet = cloneGoogleSheet("elimTemplate", s.getRange('generateSingleElimName').getValue());
+  var numTeams = s.getRange('generateSingleElimNumTeams').getValue();
+  newSheet.getRange("numTeams").setValue(numTeams);
+  var teams = [];for (let i=0; i<numTeams;i++){teams.push([i+1,"seed#" + (i+1).toString()]);};
+  const selB = new SingleEliminationBracket(SpreadsheetApp.getActiveSheet());
+  
+  var startTime = s.getRange('generateSingleElimTime').getValue();
+  newSheet.getRange("startTime").setValue(startTime);
+  
+  if (numTeams > 32){  newSheet.insertRows(33, (numTeams-32)); }
+  newSheet.getRange(2,1, numTeams, 2).setValues(teams).setBackgroundColor('green');
+  newSheet.getRange('bracketType').setValue("single elim");
+  selB.writeBracket();
+  writeListOfBrackets();
+}
 
-function makeDoubleElim(){}
+function makeDoubleElim(){
+  var s = SpreadsheetApp.getActiveSheet();
+  var newSheet = cloneGoogleSheet("elimTemplate", s.getRange('generateDoubleElimName').getValue());
+  var numTeams = s.getRange('generateDoubleElimNumTeams').getValue();
+  newSheet.getRange("numTeams").setValue(numTeams);
+  
+  var doubleFinal = s.getRange('generateDoubleElimFinal2').getValue();
+  newSheet.getRange('bracketType').setValue("double elim");
+  
+  var startTime = s.getRange('generateDoubleElimTime').getValue();
+  newSheet.getRange("startTime").setValue(startTime);
+  
+  const selB = new DoubleEliminationBracket(SpreadsheetApp.getActiveSheet(), doubleFinal);
+  
+  if (numTeams > 32){ newSheet.insertRows(33, (numTeams-32)); }
+  var teams = [];for (let i=0; i<numTeams;i++){teams.push([i+1,"seed#" + (i+1).toString()]);};
+  newSheet.getRange(2,1, numTeams, 2).setValues(teams).setBackgroundColor('green');
+  selB.writeBracket();
+  writeListOfBrackets();
+}
 
 function makeWorldCup(){}
 

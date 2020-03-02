@@ -15,11 +15,11 @@ class BracketWriter {
     game.drawPos = gamePos;
     drawOptions = this.getDefaults(drawOptions);
     var cRange = this.sheet.getRange(gamePos[0], gamePos[1],1,5);
-    cRange.setFormulas([[`=CONCATENATE("Game #"; B${gameRow})`,
-                         `=C${gameRow}`,
+    cRange.setFormulas([[`=CONCATENATE("Game #"; A${gameRow})`,
+                         `=B${gameRow}`,
+                         `=IF(ISBLANK(D${gameRow}); "-";D${gameRow})`,
                          `=IF(ISBLANK(E${gameRow}); "-";E${gameRow})`,
-                         `=IF(ISBLANK(F${gameRow}); "-";F${gameRow})`,
-                         `=D${gameRow}`]]);
+                         `=C${gameRow}`]]);
     cRange.setBackground(drawOptions.gameColor)
     .setBorder(true, true, true, true, false, false)
     .setHorizontalAlignment('center')
@@ -153,7 +153,6 @@ class EliminationBracket extends Bracket {
     var teams = this.sheet.getRange('teams').offset(0,0,this.numTeams,1).getValues().flat();
     var games = this.eliminationGames(teams.length); 
     var final = last(games);
-    nameTeam(final, teams);
     this.drawElim(games);
     this.writeGames(games)
   }
@@ -163,29 +162,28 @@ class EliminationBracket extends Bracket {
     // add stuff to automatically shift games once scores are entered.
     var teamsRow0 = this.sheet.getRange('teams').getRow();
     var gamesRow0 = this.sheet.getRange('games').getRow();
-    var sheet =this.sheet;
     
+    // formulae for teams which depend on previous scores.
     var teamFn = function (game){
-      let teams  = [null, null];
-      
-      game.seeds.forEach(function (seed, i) {
-        if (seed==null){null;}
-        else if (seed > 0) { teams[i] = "=B$" + (teamsRow0+seed-1).toString();}
-        else {
-          let seedRow = gamesRow0+seed.gameNumber-1;
-          if (game.winner[i]) {teams[i] = `=IF(E${seedRow}>F${seedRow};C${seedRow};IF(E${seedRow}<F${seedRow};D${seedRow};"Winner ${seed.gameNumber}"))`;}
-          else {teams[i] = `=IF(E${seedRow}<F${seedRow};C${seedRow};IF(E${seedRow}>F${seedRow};D${seedRow};"Loser ${seed.gameNumber}"))`;}
+      return game.seeds.map(
+        function (seed, i) {
+          if (seed==null){return null;} // should not reach this condition!
+          else if (seed > 0) { return "=B$" + (teamsRow0+seed-1).toString();}
+          else {
+            let winner = (game.WB) ? true : (seed.WB ? false : true);
+            let seedRow = gamesRow0+seed.gameNumber-1;
+            if (winner) {return `=IF(D${seedRow}>E${seedRow};B${seedRow};IF(D${seedRow}<E${seedRow};C${seedRow};"Winner ${seed.gameNumber}"))`;}
+            else {return `=IF(D${seedRow}<E${seedRow};B${seedRow};IF(D${seedRow}>E${seedRow};C${seedRow};"Loser ${seed.gameNumber}"))`;}
          }
       });
-      return teams;
     }
        
     var rowFormulasFn = function (game){
       let tNames = teamFn(game);
-      return [`=${game.r}`, `=${game.gameNumber}`, tNames[0], tNames[1], null, null];
+      return [`=${game.gameNumber}`, tNames[0], tNames[1], null, null];
     }
     var gameRange = this.sheet.getRange('games');
-    gameRange.offset(0,0,games.length,6).setFormulas(games.map(g=>rowFormulasFn(g)));
+    gameRange.offset(0,0,games.length,5).setFormulas(games.map(g=>rowFormulasFn(g)));
   }
   
   writeBracBrackets(){
@@ -253,7 +251,8 @@ class EliminationBracket extends Bracket {
 
     let [wRow, wCol] = this.drawSingleElim(wbGames, start, options);
     this.drawSingleElim(lbGames,[wRow+10, start[1]], options);
-
+    
+    if (this.doubleFinal){last(games).seeds[1]= last(games).seeds[0]; last(games).WB=false;}
    
   }
   
@@ -280,12 +279,12 @@ class SingleEliminationBracket extends EliminationBracket {
  
 }
 
-class doubleEliminationBracket extends EliminationBracket {
+class DoubleEliminationBracket extends EliminationBracket {
  constructor(sheet, doubleFinal=false) {
    super(sheet);
    this.doubleFinal=doubleFinal;
  }
-   
+
   eliminationGames(numTeams) {
     let games = doubleEliminationGames(numTeams);
     if (this.doubleFinal) {
@@ -299,19 +298,19 @@ class doubleEliminationBracket extends EliminationBracket {
   
 }
 
-function makeSingleElim () {
+function makeSingleElimNew () {
   const selB = new SingleEliminationBracket(SpreadsheetApp.getActiveSheet());
   selB.writeBracket();
   return selB;
 }
 
-function makeDoubleElim () {
-  const selB = new doubleEliminationBracket(SpreadsheetApp.getActiveSheet(),true);
+function makeDoubleElimNew () {
+  const selB = new DoubleEliminationBracket(SpreadsheetApp.getActiveSheet(),true);
   selB.writeBracket();
   return selB;
 }
 
-function makeBrackElim () {
+function makeBrackElimNew () {
   const selB = new EliminationBracket(SpreadsheetApp.getActiveSheet());
   selB.writeBracBrackets();
   return selB;
@@ -478,3 +477,13 @@ function bracEliminationGames(format){
   }
   return brackets;
 }
+      
+function getGamesNew(){
+  var sheet = SpreadsheetApp.getActiveSheet();
+  b = getBracketFromSheet(sheet);
+  console.log(b.getTeams());
+  console.log(b.getGames());
+}
+      
+      
+      

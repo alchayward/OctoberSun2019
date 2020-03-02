@@ -33,6 +33,16 @@ class Bracket {
      return games;
    }
   
+  validGame(game, teams) {
+    var valids = [
+      (Number.isInteger(game.score1) && (game.score1 >= 0)) || (game.score1 == null),
+      (Number.isInteger(game.score2) && (game.score2 >= 0)) || (game.score2 == null),
+      teams.includes(game.team1),
+      teams.includes(game.team2)];
+    
+    return valids.every(Boolean);
+  }
+
   gameFromRow(row) {
     var game = {
       round : row[0],

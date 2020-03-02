@@ -82,8 +82,6 @@ class SwissBracket extends Bracket {
     return Number.isInteger(game.score1) && Number.isInteger(game.score2);
   }
 
- 
-  
   getScores()  {
     var scores = this.sheet.getRange(2, 2, this.numTeams, 10).getValues();
     return scores.map(x => ({name:x[0], wins:x[2], losses:x[3], draws:x[4], points:x[5], delta:x[6], gf:x[7], ga:x[8], gamesPlayed:x[9]}));

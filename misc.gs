@@ -4,7 +4,12 @@ function dispMsg(msg){
   return result
 }
 
-function transpose(matrix) { return matrix[0].map((col, i) => matrix.map(row => row[i]));}
+function flat(arr, d = 1) {
+   return d > 0 ? arr.reduce((acc, val) => acc.concat(Array.isArray(val) ? flat(val, d - 1) : val), [])
+                : arr.slice();
+};
+
+function transpose(matrix) {return matrix[0].map((col, i) => matrix.map(row => row[i]));}
 
 function last(a) {return a[a.length-1];}
 
